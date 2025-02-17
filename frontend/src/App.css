@@ -1,0 +1,91 @@
+/* Ensure the html and body elements take up full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* The main App container should take full height and width of the screen */
+.App {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;  /* Take full viewport height */
+  width: 100%;    /* Full width of the screen */
+  justify-content: flex-start;
+  align-items: stretch;  /* Stretch child elements */
+  background-color: #f0f0f0;
+}
+
+/* Header styling to add some space */
+h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin: 20px 0;
+  color: #333;
+}
+
+/* Chat component should take up the remaining space */
+.Chat {
+  flex: 1;  /* Take up all available space */
+  width: 100%;
+  padding: 20px;
+  overflow-y: auto;  /* Allow scrolling if content overflows */
+}
+
+/* Styling for markdown rendered content */
+.markdown-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+  color: #333;
+  font-weight: bold;
+}
+
+.markdown-content p {
+  margin-bottom: 10px;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin-left: 20px;
+  padding-left: 20px;
+}
+
+.markdown-content li {
+  margin-bottom: 5px;
+}
+
+.markdown-content blockquote {
+  border-left: 4px solid #ccc;
+  padding-left: 10px;
+  font-style: italic;
+  color: #666;
+}
+
+.markdown-content code {
+  font-family: 'Courier New', monospace;
+  background-color: #f5f5f5;
+  padding: 3px 5px;
+  border-radius: 5px;
+}
+
+.markdown-content pre {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 5px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+}
