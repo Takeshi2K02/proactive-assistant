@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import QuestionBlock from '../components/QuestionBlock';
 import AnswerBlock from '../components/AnswerBlock';
 import './Chat.css';
@@ -7,8 +9,8 @@ import './Chat.css';
 const ChatPage = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
+  const textAreaRef = useRef(null);
 
-  // Load messages from sessionStorage on mount
   useEffect(() => {
     const savedMessages = sessionStorage.getItem('chatMessages');
     if (savedMessages) {
@@ -16,12 +18,18 @@ const ChatPage = () => {
     }
   }, []);
 
-  // Save messages to sessionStorage after messages update
   useEffect(() => {
     if (messages.length > 0) {
       sessionStorage.setItem('chatMessages', JSON.stringify(messages));
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = 'auto';
+      textAreaRef.current.style.height = textAreaRef.current.scrollHeight + 'px';
+    }
+  }, [message]);
 
   const sendMessage = async () => {
     if (message.trim() === '') return;
@@ -35,7 +43,7 @@ const ChatPage = () => {
 
       setMessages(prevMessages => {
         const newMessages = [...prevMessages, assistantMessage];
-        sessionStorage.setItem('chatMessages', JSON.stringify(newMessages)); // Ensure session storage update
+        sessionStorage.setItem('chatMessages', JSON.stringify(newMessages));
         return newMessages;
       });
     } catch (error) {
@@ -45,12 +53,11 @@ const ChatPage = () => {
     setMessage('');
   };
 
-  const deleteMessage = (index) => {
-    setMessages(prevMessages => {
-      const updatedMessages = prevMessages.filter((_, i) => i !== index && i !== index + 1);
-      sessionStorage.setItem('chatMessages', JSON.stringify(updatedMessages));
-      return updatedMessages;
-    });
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   return (
@@ -59,7 +66,7 @@ const ChatPage = () => {
         <div className="messages">
           {messages.map((msg, index) => (
             msg.sender === 'user' ? (
-              <QuestionBlock key={index} text={msg.text} onDelete={() => deleteMessage(index)} />
+              <QuestionBlock key={index} text={msg.text} />
             ) : (
               <AnswerBlock key={index} text={msg.text} />
             )
@@ -67,14 +74,20 @@ const ChatPage = () => {
         </div>
 
         <div className="input-area">
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Ask something..."
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-          />
-          <button onClick={sendMessage}>Send</button>
+          <div className="input-wrapper"> {/* Added Wrapper */}
+            <textarea
+              ref={textAreaRef}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Ask something..."
+              onKeyDown={handleKeyDown}
+              rows={1}
+              style={{ overflowY: 'hidden', resize: 'none' }}
+            />
+            <button className="inside-button" onClick={sendMessage}>
+              <FontAwesomeIcon icon={faPaperPlane} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
