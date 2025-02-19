@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import ReactMarkdown from 'react-markdown';
+import QuestionBlock from '../components/QuestionBlock';
+import AnswerBlock from '../components/AnswerBlock';
 import './Chat.css';
 
-function Chat() {
+const ChatPage = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
 
@@ -20,15 +21,13 @@ function Chat() {
     if (messages.length > 0) {
       sessionStorage.setItem('chatMessages', JSON.stringify(messages));
     }
-  }, [messages]); // Run effect when messages change
+  }, [messages]);
 
   const sendMessage = async () => {
     if (message.trim() === '') return;
 
     const userMessage = { text: message, sender: 'user' };
-    const updatedMessages = [...messages, userMessage];
-
-    setMessages(updatedMessages);
+    setMessages(prevMessages => [...prevMessages, userMessage]);
 
     try {
       const res = await axios.post('http://localhost:5000/chat', { message });
@@ -46,14 +45,24 @@ function Chat() {
     setMessage('');
   };
 
+  const deleteMessage = (index) => {
+    setMessages(prevMessages => {
+      const updatedMessages = prevMessages.filter((_, i) => i !== index && i !== index + 1);
+      sessionStorage.setItem('chatMessages', JSON.stringify(updatedMessages));
+      return updatedMessages;
+    });
+  };
+
   return (
     <div className="chat-container">
       <div className="chat-box">
         <div className="messages">
           {messages.map((msg, index) => (
-            <div key={index} className={`message ${msg.sender}-message`}>
-              <ReactMarkdown>{msg.text}</ReactMarkdown>
-            </div>
+            msg.sender === 'user' ? (
+              <QuestionBlock key={index} text={msg.text} onDelete={() => deleteMessage(index)} />
+            ) : (
+              <AnswerBlock key={index} text={msg.text} />
+            )
           ))}
         </div>
 
@@ -70,6 +79,6 @@ function Chat() {
       </div>
     </div>
   );
-}
+};
 
-export default Chat;
+export default ChatPage;

@@ -27,26 +27,56 @@
     flex-direction: column;
 }
 
-.message {
-    padding: 10px 20px; /* Top & Bottom: 10px, Left & Right: 20px */
-    font-size: 1rem; /* 1rem text size */
+.message-container {
+    display: flex;
+    align-items: center;
     margin-bottom: 15px;
+    justify-content: flex-end;
+    position: relative;
+}
+
+.message-container:hover .delete-button {
+    opacity: 1;
+}
+
+.delete-button {
+    background-color: transparent; /* Remove background */
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    opacity: 0; /* Make button invisible by default */
+    transition: opacity 0.2s ease-in-out;
+    padding: 0; /* Remove padding */
+    margin-top: 15px;
+}
+
+.delete-button:hover {
+    opacity: 1; /* Ensure button stays visible when hovered */
+}
+
+.message {
+    padding: 10px 20px;
+    font-size: 1rem;
     border-radius: 20px;
     max-width: 70%;
     word-wrap: break-word;
 }
 
-.message p {
+.user-message {
+    background-color: #007bff;
+    margin-top: 15px;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.user-message p {
     margin: 0;
 }
 
-
-.user-message {
-    background-color: #007bff;
-    color: white;
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
-}
+/* Rest of your existing CSS remains unchanged */
 
 .assistant-message {
     background-color: #e9ecef;
