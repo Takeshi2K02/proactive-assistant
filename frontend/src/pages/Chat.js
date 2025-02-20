@@ -13,11 +13,21 @@ const ChatPage = () => {
 
   useEffect(() => {
     const savedMessages = sessionStorage.getItem('chatMessages');
+  
     if (savedMessages) {
       setMessages(JSON.parse(savedMessages));
+    } else {
+      // Fetch initial bot message from backend
+      axios.post('http://localhost:5000/chat', {})
+        .then(res => {
+          const initialBotMessage = { text: res.data.response, sender: 'assistant' };
+          setMessages([initialBotMessage]);
+          sessionStorage.setItem('chatMessages', JSON.stringify([initialBotMessage]));
+        })
+        .catch(error => console.error('Error fetching initial message:', error));
     }
   }, []);
-
+  
   useEffect(() => {
     if (messages.length > 0) {
       sessionStorage.setItem('chatMessages', JSON.stringify(messages));

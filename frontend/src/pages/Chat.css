@@ -85,6 +85,10 @@
     border-bottom-left-radius: 4px;
 }
 
+.assistant-message p {
+    margin: 0;
+}
+
 .input-wrapper {
     position: relative;
     width: 100%;
