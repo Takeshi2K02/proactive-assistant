@@ -6,6 +6,8 @@ import QuestionBlock from '../components/QuestionBlock';
 import AnswerBlock from '../components/AnswerBlock';
 import './Chat.css';
 
+const TOKEN_LIMIT = 4096;  // Adjust based on your model's token limit
+
 const ChatPage = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
@@ -15,6 +17,14 @@ const ChatPage = () => {
     const savedMessages = sessionStorage.getItem('chatMessages');
     if (savedMessages) {
       setMessages(JSON.parse(savedMessages));
+    } else {
+      axios.post('http://localhost:5000/chat', {})
+        .then(res => {
+          const initialBotMessage = { text: res.data.response, sender: 'assistant' };
+          setMessages([initialBotMessage]);
+          sessionStorage.setItem('chatMessages', JSON.stringify([initialBotMessage]));
+        })
+        .catch(error => console.error('Error fetching initial message:', error));
     }
   }, []);
 
@@ -42,7 +52,8 @@ const ChatPage = () => {
       const assistantMessage = { text: res.data.response, sender: 'assistant' };
 
       setMessages(prevMessages => {
-        const newMessages = [...prevMessages, assistantMessage];
+        let newMessages = [...prevMessages, assistantMessage];
+        newMessages = enforceTokenLimit(newMessages);  // Manage token limit
         sessionStorage.setItem('chatMessages', JSON.stringify(newMessages));
         return newMessages;
       });
@@ -60,13 +71,42 @@ const ChatPage = () => {
     }
   };
 
+  // 🔥 Delete selected question + its answer + all following messages
+  const handleDeleteMessage = (index) => {
+    setMessages(prevMessages => {
+      const newMessages = prevMessages.slice(0, index); // Delete from selected question onwards
+      sessionStorage.setItem('chatMessages', JSON.stringify(newMessages));
+      return newMessages;
+    });
+  };
+
+  // 🔥 Manage Token Limit
+  const enforceTokenLimit = (chatHistory) => {
+    let totalTokens = 0;
+    let trimmedHistory = [];
+
+    for (let i = chatHistory.length - 1; i >= 0; i--) {
+      const message = chatHistory[i];
+      const tokenCount = message.text.split(' ').length; // Rough token estimation
+      if (totalTokens + tokenCount > TOKEN_LIMIT) break;
+      totalTokens += tokenCount;
+      trimmedHistory.unshift(message);
+    }
+
+    return trimmedHistory;
+  };
+
   return (
     <div className="chat-container">
       <div className="chat-box">
         <div className="messages">
           {messages.map((msg, index) => (
             msg.sender === 'user' ? (
-              <QuestionBlock key={index} text={msg.text} />
+              <QuestionBlock 
+                key={index} 
+                text={msg.text} 
+                onDelete={() => handleDeleteMessage(index)} 
+              />
             ) : (
               <AnswerBlock key={index} text={msg.text} />
             )
@@ -74,7 +114,7 @@ const ChatPage = () => {
         </div>
 
         <div className="input-area">
-          <div className="input-wrapper"> {/* Added Wrapper */}
+          <div className="input-wrapper">
             <textarea
               ref={textAreaRef}
               value={message}

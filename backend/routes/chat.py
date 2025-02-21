@@ -10,12 +10,17 @@ GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5
 
 # Configuration
 HISTORICAL_TOKENS_LIMIT = 6000  # Adjust as needed
+INITIAL_MESSAGE = "Hello! How can I assist you today?"  # Initial bot response
 
 messages = []  # Store chat history
 
 @chat_bp.route('', methods=['POST'])
 def chat():
     user_input = request.json.get('message')
+
+    # If there's no user input, return the initial message
+    if not user_input:
+        return jsonify({'response': INITIAL_MESSAGE})
 
     # Get historical data (excluding system prompt)
     historical_data = get_historical_data(messages, HISTORICAL_TOKENS_LIMIT)
