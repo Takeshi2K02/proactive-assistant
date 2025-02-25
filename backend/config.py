@@ -71,3 +71,9 @@ Always maintain a respectful, warm, and motivating tone. Understand the user’s
 
 - **Empathetic Support:** When users feel overwhelmed, offer reassurance and guidance. Acknowledge their struggles while focusing on solutions.
 - **Clear, Actionable Advice:** Provide specific, clear guidance that users can immediately act on, ensuring they always know what to do next."""
+
+# MONGODB_URI = "mongodb+srv://Admin:Admin@proactive-assistant-clu.tbp0z.mongodb.net/?retryWrites=true&w=majority&appName=proactive-assistant-cluster"
+
+MONGODB_URI="mongodb+srv://Admin:Admin@proactive-assistant-clu.tbp0z.mongodb.net/?retryWrites=true&w=majority&appName=proactive-assistant-cluster"
+
+GEMINI_API_KEY = 'AIzaSyAKogh4AqTsQESzHoGqIketpNnhMmZoPNI'

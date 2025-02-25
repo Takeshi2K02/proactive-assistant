@@ -11,7 +11,8 @@ app.config['SECRET_KEY'] = 'mysecret'
 socketio = SocketIO(app)
 
 # Enable CORS to allow cross-origin requests (useful when React is running on a different port)
-CORS(app)
+# Enable CORS to allow cross-origin requests
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Register Blueprints
 app.register_blueprint(chat_bp, url_prefix='/chat')

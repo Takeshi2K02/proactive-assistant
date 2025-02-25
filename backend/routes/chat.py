@@ -1,71 +1,50 @@
-import requests
+import logging
 from flask import Blueprint, request, jsonify
-from utils.token_helper import get_historical_data, count_tokens
+from datetime import datetime
+from utils.token_helper import get_historical_data
 from config import SYSTEM_PROMPT
+from services.mongo_service import MongoService
+from services.task_service import TaskService
+from services.gemini_service import GeminiService
 
+# Initialize services
+mongo_service = MongoService()
+task_service = TaskService(mongo_service)
+gemini_service = GeminiService()
+
+# Blueprint for chat routes
 chat_bp = Blueprint('chat', __name__)
 
-GEMINI_API_KEY = 'AIzaSyAKogh4AqTsQESzHoGqIketpNnhMmZoPNI'
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
-
 # Configuration
-HISTORICAL_TOKENS_LIMIT = 6000  # Adjust as needed
-INITIAL_MESSAGE = "Hello! How can I assist you today?"  # Initial bot response
+HISTORICAL_TOKENS_LIMIT = 6000
+INITIAL_MESSAGE = "Hello! How can I assist you today?"
+messages = []
 
-messages = []  # Store chat history
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+def extract_intent(user_input):
+    if "add task" in user_input.lower():
+        return "Add Task"
+    elif "view tasks" in user_input.lower():
+        return "View Tasks"
+    return "Unknown Intent"
 
 @chat_bp.route('', methods=['POST'])
 def chat():
     user_input = request.json.get('message')
+    user_id = request.json.get('user_id', "some_user_id")  # Default user ID
 
-    # If there's no user input, return the initial message
     if not user_input:
         return jsonify({'response': INITIAL_MESSAGE})
 
-    # Get historical data (excluding system prompt)
-    historical_data = get_historical_data(messages, HISTORICAL_TOKENS_LIMIT)
+    intent = extract_intent(user_input)
 
-    # Prepare conversation history (System prompt + historical data + new input)
-    conversation_parts = [{"text": SYSTEM_PROMPT}]  # System prompt first
-    for message in historical_data:
-        conversation_parts.append({"text": f"User: {message['question']}"})
-        conversation_parts.append({"text": f"Assistant: {message['answer']}"})
+    if intent == "Add Task":
+        return task_service.add_task(user_input, user_id)
 
-    # Add new user input
-    conversation_parts.append({"text": f"User: {user_input}"})
+    elif intent == "View Tasks":
+        return task_service.view_tasks(user_id)
 
-    # Prepare payload
-    payload = {
-        "contents": [{"parts": conversation_parts}]
-    }
-
-    # Set headers
-    headers = {
-        'Content-Type': 'application/json',
-    }
-
-    # Send request to Gemini API
-    response = requests.post(
-        GEMINI_URL, 
-        params={'key': GEMINI_API_KEY}, 
-        headers=headers, 
-        json=payload
-    )
-
-    # Process response
-    if response.status_code == 200:
-        gemini_response = response.json()
-        print("Gemini Response: ", gemini_response)  # Log for debugging
-        
-        try:
-            gemini_text = gemini_response['candidates'][0]['content']['parts'][0]['text']
-            
-            # Ensure only user messages are stored, NOT system prompt
-            messages.append({"question": user_input, "answer": gemini_text})
-            
-            return jsonify({'response': gemini_text})
-        except KeyError:
-            return jsonify({'error': 'Unexpected response format from Gemini API'}), 500
-    else:
-        print("Error Response: ", response.text)  # Log for debugging
-        return jsonify({'error': 'Error in Gemini API request', 'details': response.text}), 500
+    # Otherwise, handle with Gemini API
+    return gemini_service.process_gemini_response(user_input, messages)
